@@ -1,0 +1,131 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+
+# Variables - CHANGE HERE:
+# ---------------------------------------------------------
+PACKAGES = [
+      "java-1.7.0-openjdk",
+      "gcc-c++",
+      "ksh",
+      "glibc.i686"
+]
+# ---------------------------------------------------------
+Vagrant.configure("2") do |config|
+  config.vm.define "puppet" do |puppet|
+    config.vm.provider "virtualbox" do |v|
+      v.memory = 8192
+    end
+
+    puppet.vm.synced_folder ".", "/vagrant"
+    puppet.vm.synced_folder "../code", "/puppet_code"
+    puppet.vm.synced_folder "../puppetserver", "/puppet_server"
+
+    puppet.hostmanager.enabled = true
+    puppet.hostmanager.ignore_private_ip = false
+    puppet.hostmanager.include_offline = true
+
+    puppet.vm.box = "centos/7"
+    puppet.vm.hostname = "puppet.hq.intel"
+    puppet.vm.network :private_network, ip: "10.0.0.10"
+    puppet.hostmanager.aliases = %w(puppet)
+    puppet.vm.provision "shell", inline: <<-SHELL
+      sudo yum update -y
+      sudo yum install -y vim ruby
+      gem install rake
+      gem install bundler
+
+      #Installs Puppet 6
+      sudo rpm -ivh https://yum.puppetlabs.com/puppet6/puppet6-release-el-7.noarch.rpm
+      sudo yum install puppetserver -y
+
+      #Copy Puppet Code contents of the synced folder under version control
+      # sudo rm -rf /etc/puppetlabs/code
+      # sudo ln -s /puppet_code /etc/puppetlabs/code
+
+      #Copy Puppet Server contents of the synced folder under version control
+      # sudo rm -rf /etc/puppetlabs/puppetserver
+      # sudo ln -s /puppet_server /etc/puppetlabs/puppetserver
+
+      sudo sed -i 's/2g/4g/g' /etc/sysconfig/puppetserver
+      #sudo sed -i 's/-XX:MaxPermSize=256m//g' /etc/sysconfig/puppetserver
+      echo "*.hq.intel" | sudo tee /etc/puppetlabs/puppet/autosign.conf
+
+      #Configure the keys for eyaml (Should the keys change in the directory)
+      sudo /opt/puppetlabs/bin/puppetserver gem install hiera-eyaml
+      sudo mkdir /etc/puppetlabs/puppet/eyaml
+      sudo cp -r /vagrant/keys/* /etc/puppetlabs/puppet/eyaml
+      sudo chown -R puppet. /etc/puppetlabs/puppet/eyaml
+      sudo chmod -R 0500 /etc/puppetlabs/puppet/eyaml
+      sudo chmod 0400 /etc/puppetlabs/puppet/eyaml/*.pem
+
+      # alias cdpup="cd /etc/puppetlabs/code/environments"
+      # source ~/.bashrc
+
+      sudo service puppetserver start
+
+    SHELL
+
+    #Installation of the Yum Repo
+
+    # puppet.vm.provision "shell" do |s|
+    #   s.path = "../scripts/create_yum_repo.sh"
+    #   s.args = PACKAGES
+    #   s.env = {:http_proxy => ENV['HTTP_PROXY'], :https_proxy => ENV['HTTP_PROXY']}
+    # end
+    #
+    # #Stand up the repo and finish completing gem installation
+    # puppet.vm.provision "shell", inline: <<-SHELL
+    #   #Done individually because yumdownloader cannot parse with rpm in the name
+    #   sudo ./yumupdate.sh /puppet_binaries/prometheus-2.3.2-1.el7.x86_64
+    #   sudo ./yumupdate.sh /puppet_binaries/alertmanager-0.15.2-1.el7.x86_64
+    #   sudo ./yumupdate.sh /puppet_binaries/node_exporter-0.16.0-3.el7.centos.x86_64
+    #   sudo yum clean all
+    #
+    #   sudo cp /etc/yum.repos.d/XYR.repo /var/www/html/xyrepo/
+    #   # cd /etc/puppetlabs/code/environments/production/modules/ntp
+    #   # bundle install
+    # SHELL
+  end
+
+  config.vm.define "analyst" do |analyst|
+    analyst.vm.provider :virtualbox do |an|
+      an.memory = 2048
+    end
+    analyst.hostmanager.enabled = true
+    analyst.hostmanager.ignore_private_ip = false
+    analyst.hostmanager.include_offline = true
+    analyst.vm.box = "centos/7"
+    analyst.vm.hostname = "analyst.hq.intel"
+    analyst.vm.network :private_network, ip: "10.0.0.20"
+    analyst.hostmanager.aliases = %w(analyst)
+
+    analyst.vm.provision "shell", inline: <<-SHELL
+      sudo yum update -y
+      sudo yum install ruby vim -y
+      sudo rpm -ivh https://yum.puppetlabs.com/puppet6/puppet6-release-el-7.noarch.rpm
+      sudo yum install -y puppet-agent
+      sudo service puppet start
+    SHELL
+  end
+
+  config.vm.define "operations" do |operations|
+    operations.vm.provider :virtualbox do |ops|
+      ops.memory = 2048
+    end
+    operations.vm.box = "debian/jessie64"
+    operations.vm.hostname = "operations.hq.intel"
+    operations.vm.network :private_network, ip: "10.0.0.30"
+    operations.hostmanager.aliases = %w(operations)
+    operations.vm.provision "shell", inline: <<-SHELL
+      wget https://apt.puppetlabs.com/puppetlabs-release-pc1-jessie.deb
+      sudo dpkg -i puppetlabs-release-pc1-jessie.deb
+      sudo apt-get update -y
+      sudo apt-get install ruby-full
+      sudo apt install vim -y
+      sudo apt-get install puppet-agent -y
+      sudo /opt/puppetlabs/bin/puppet agent --enable
+      sudo service puppet start
+    SHELL
+  end
+end
