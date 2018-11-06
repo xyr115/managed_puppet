@@ -18,8 +18,8 @@ Vagrant.configure("2") do |config|
     end
 
     puppet.vm.synced_folder ".", "/vagrant"
-    puppet.vm.synced_folder "../code", "/puppet_code"
-    puppet.vm.synced_folder "../puppetserver", "/puppet_server"
+    # puppet.vm.synced_folder "../code", "/puppet_code"
+    # puppet.vm.synced_folder "../puppetserver", "/puppet_server"
 
     puppet.hostmanager.enabled = true
     puppet.hostmanager.ignore_private_ip = false
@@ -52,12 +52,12 @@ Vagrant.configure("2") do |config|
       echo "*.hq.intel" | sudo tee /etc/puppetlabs/puppet/autosign.conf
 
       #Configure the keys for eyaml (Should the keys change in the directory)
-      sudo /opt/puppetlabs/bin/puppetserver gem install hiera-eyaml
-      sudo mkdir /etc/puppetlabs/puppet/eyaml
-      sudo cp -r /vagrant/keys/* /etc/puppetlabs/puppet/eyaml
-      sudo chown -R puppet. /etc/puppetlabs/puppet/eyaml
-      sudo chmod -R 0500 /etc/puppetlabs/puppet/eyaml
-      sudo chmod 0400 /etc/puppetlabs/puppet/eyaml/*.pem
+      # sudo /opt/puppetlabs/bin/puppetserver gem install hiera-eyaml
+      # sudo mkdir /etc/puppetlabs/puppet/eyaml
+      # sudo cp -r /vagrant/keys/* /etc/puppetlabs/puppet/eyaml
+      # sudo chown -R puppet. /etc/puppetlabs/puppet/eyaml
+      # sudo chmod -R 0500 /etc/puppetlabs/puppet/eyaml
+      # sudo chmod 0400 /etc/puppetlabs/puppet/eyaml/*.pem
 
       # alias cdpup="cd /etc/puppetlabs/code/environments"
       # source ~/.bashrc
