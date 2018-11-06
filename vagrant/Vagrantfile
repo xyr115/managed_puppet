@@ -18,8 +18,8 @@ Vagrant.configure("2") do |config|
     end
 
     puppet.vm.synced_folder ".", "/vagrant"
-    # puppet.vm.synced_folder "../code", "/puppet_code"
-    # puppet.vm.synced_folder "../puppetserver", "/puppet_server"
+    puppet.vm.synced_folder "../code", "/puppet_code"
+    puppet.vm.synced_folder "../puppetserver", "/puppet_server"
 
     puppet.hostmanager.enabled = true
     puppet.hostmanager.ignore_private_ip = false
