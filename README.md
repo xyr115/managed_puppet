@@ -1,4 +1,4 @@
-# Managed, production ready environment written in Puppet 6
+# Vagrant Managed, production ready environment written for Puppet 6
 Production ready Deployable Puppet Environment
 
 # Getting Started / Requirements
