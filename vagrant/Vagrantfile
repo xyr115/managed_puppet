@@ -41,6 +41,7 @@ Vagrant.configure("2") do |config|
       #Installs Puppet 6
       sudo rpm -ivh https://yum.puppetlabs.com/puppet6/puppet6-release-el-7.noarch.rpm
       sudo yum install puppetserver -y
+      sudo rpm -ivh https://yum.puppetlabs.com/puppet6/el/7/x86_64/puppet-bolt-1.3.0-1.el7.x86_64.rpm
 
       # R10K Antithetical 2
 
