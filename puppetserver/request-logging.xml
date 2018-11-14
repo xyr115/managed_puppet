@@ -6,7 +6,7 @@
             <!-- rollover daily -->
             <fileNamePattern>/var/log/puppetlabs/puppetserver/puppetserver-access-%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
             <!-- each file should be at most 200MB, keep 90 days worth of history, but at most 1GB total-->
-            <maxFileSize>200MB</maxFileSize>
+            <maxFileSize>500MB</maxFileSize>
             <maxHistory>90</maxHistory>
             <totalSizeCap>1GB</totalSizeCap>
         </rollingPolicy>
